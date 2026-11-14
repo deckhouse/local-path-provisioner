@@ -1,0 +1,32 @@
+---
+image: {{ .ModuleNamePrefix }}{{ .ImageName }}-artifact
+from: {{ index $.Images "builder/golang" }}
+final: false
+
+git:
+  - add: {{ .ModuleDir }}/hooks/go
+    to: /usr/src/app/hooks/go
+    stageDependencies:
+      install:
+        - '**/go.mod'
+        - '**/go.sum'
+      beforeSetup:
+        - '**/*.go'
+
+mount:
+{{ include "mount points for golang builds" . }}
+
+secrets:
+- id: GOPROXY
+  value: {{ .GOPROXY }}
+
+shell:
+  install:
+    {{- include "svace toolchain for golang builds" . | nindent 4 }}
+    - cd /usr/src/app/hooks/go
+    - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
+  beforeSetup:
+    - |
+      cd /usr/src/app/hooks/go;
+      export CGO_ENABLED=0
+      {{- include "image-build.build" (set $ "BuildCommand" `go build -a -gcflags=all="-l -B" -ldflags="-w -s" -o /go-hooks *.go;`) | nindent 6 }}

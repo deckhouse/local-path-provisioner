@@ -1,0 +1,52 @@
+---
+image: {{ .ModuleNamePrefix }}{{ .ImageName }}-src-artifact
+from: {{ index $.Images "builder/src" }}
+final: false
+
+git:
+  - add: {{ .ModuleDir }}images/{{ .ImageName }}/src
+    to: /src
+    includePaths:
+      - '**/*.go'
+      - '**/*.mod'
+    stageDependencies:
+      install:
+        - '**/*'
+
+---
+image: {{ .ModuleNamePrefix }}{{ .ImageName }}-artifact-dir-manager
+from: {{ index $.Images "builder/golang" }}
+final: false
+
+import:
+  - image: {{ .ModuleNamePrefix }}{{ .ImageName }}-src-artifact
+    add: /src
+    to: /src
+    before: install
+
+mount:
+{{ include "mount points for golang builds" . }}
+
+secrets:
+- id: GOPROXY
+  value: {{ .GOPROXY }}
+
+shell:
+  install:
+    {{- include "svace toolchain for golang builds" . | nindent 4 }}
+    - cd /src
+    - export CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+    - |
+      {{- include "image-build.build" (set $ "BuildCommand" "go build -o /manager main.go") | nindent 6 }}
+    - chmod 0777 /manager
+
+---
+image: {{ .ModuleNamePrefix }}{{ .ImageName }}
+from: {{ index $.Images "base/distroless" }}
+git:
+{{- include "image mount points" . }}
+import:
+  - image: {{ .ModuleNamePrefix }}{{ .ImageName }}-artifact-dir-manager
+    add: /manager
+    to: /manager
+    after: install

@@ -1,0 +1,9 @@
+summary: "The first release of local-path-provisioner as an external module: the module leaves the Deckhouse core and is delivered from the deckhouse module source, with the same resources and settings."
+
+highlights:
+  - "The module is delivered from the deckhouse module source and is released independently of Deckhouse. In Deckhouse 1.79 the embedded copy of the module is removed, and a cluster that runs it switches to this module on the update."
+  - "The LocalPathProvisioner resource, the module settings, the StorageClasses and the PersistentVolumes stay as they were."
+
+upgrade_notes:
+  - "The switch from the embedded module needs nothing done by hand. The module requires Deckhouse 1.78 or newer: on 1.78 the release is downloaded in advance, while the embedded copy keeps running."
+  - "When the module switches from the embedded copy, its Pods restart once, because the image and the image pull Secret change. Volumes are not provisioned or removed until the new Pods are Ready."

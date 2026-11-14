@@ -1,0 +1,69 @@
+---
+image: {{ .ModuleNamePrefix }}{{ .ImageName }}-src-artifact
+from: {{ index $.Images "builder/src" }}
+final: false
+
+git:
+  - add: {{ .ModuleDir }}
+    to: /src
+    includePaths:
+      - images/{{ $.ImageName }}/patches
+    stageDependencies:
+      install:
+        - '**/*'
+
+secrets:
+- id: SOURCE_REPO
+  value: {{ .SOURCE_REPO }}
+
+shell:
+  install:
+    - git clone --depth 1 --branch v{{ include "get_oss_version_by_id" (list "local-path-provisioner" .) }} $(cat /run/secrets/SOURCE_REPO)/rancher/local-path-provisioner.git /src/local-path-provisioner
+    - cd /src/local-path-provisioner
+    - for patchfile in /src/images/{{ $.ImageName }}/patches/*.patch; do echo "Apply ${patchfile} ... "; git apply ${patchfile} --verbose; done
+    - rm -rf /src/images/{{ $.ImageName }}/patches
+    - rm -rf /src/local-path-provisioner/vendor
+    - rm -rf /src/local-path-provisioner/.git
+
+---
+image: {{ .ModuleNamePrefix }}{{ .ImageName }}-golang-artifact
+from: {{ index $.Images "builder/golang" }}
+final: false
+
+import:
+  - image: {{ .ModuleNamePrefix }}{{ .ImageName }}-src-artifact
+    add: /src
+    to: /src
+    before: install
+
+mount:
+{{ include "mount points for golang builds" . }}
+
+secrets:
+- id: GOPROXY
+  value: {{ .GOPROXY }}
+
+shell:
+  install:
+    {{- include "svace toolchain for golang builds" . | nindent 4 }}
+    - cd /src/local-path-provisioner
+    - export CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+    - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
+    - |
+      {{- include "image-build.build" (set $ "BuildCommand" (printf `go build -ldflags "-X main.VERSION=%s -extldflags -static -s -w" -o /local-path-provisioner` (include "get_oss_version_by_id" (list "local-path-provisioner" .)))) | nindent 6 }}
+    - chown 64535:64535 /local-path-provisioner
+    - chmod 0700 /local-path-provisioner
+
+---
+image: {{ .ModuleNamePrefix }}{{ .ImageName }}
+from: {{ index $.Images "base/distroless" }}
+git:
+{{- include "image mount points" . }}
+import:
+  - image: {{ .ModuleNamePrefix }}{{ .ImageName }}-golang-artifact
+    add: /local-path-provisioner
+    to: /usr/bin/local-path-provisioner
+    after: install
+imageSpec:
+  config:
+    entrypoint: ["/usr/bin/local-path-provisioner"]

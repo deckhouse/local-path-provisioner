@@ -1,0 +1,5 @@
+# Module allowlist; CI composes it with the centralized Deckhouse gitleaks config
+[allowlist]
+paths = [
+  '''(?:^|/)images/.*\.patch$''',
+]
