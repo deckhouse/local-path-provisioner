@@ -37,7 +37,7 @@ type LocalPathProvisionerInfo struct {
 	Spec v1alpha1.LocalPathProvisionerSpec `json:"spec"`
 }
 
-var _ = registry.RegisterFunc(&pkg.HookConfig{
+var hookConfig = &pkg.HookConfig{
 	Queue: "/modules/local-path-provisioner",
 	Kubernetes: []pkg.KubernetesConfig{
 		{
@@ -47,7 +47,9 @@ var _ = registry.RegisterFunc(&pkg.HookConfig{
 			JqFilter:   `{name: .metadata.name, spec: .spec}`,
 		},
 	},
-}, handle)
+}
+
+var _ = registry.RegisterFunc(hookConfig, handle)
 
 func handle(_ context.Context, input *pkg.HookInput) error {
 	localPathProvisioners, err := objectpatch.UnmarshalToStruct[LocalPathProvisionerInfo](input.Snapshots, snapshotName)

@@ -6,7 +6,7 @@ weight: 55
 
 ## How to configure Prometheus to use local storage for storing data?
 
-Deploy custom resource `LocalPathProvisioner`:
+Create a `LocalPathProvisioner` custom resource:
 
 ```yaml
 apiVersion: deckhouse.io/v1alpha1
@@ -19,17 +19,17 @@ spec:
   path: "/opt/local-path-provisioner"
 ```
 
-- `spec.nodeGroups` must match NodeGroup where prometheus Pods run.
-- `spec.path` - node data path.
+- `spec.nodeGroups` must match the NodeGroup where the Prometheus Pods run.
+- `spec.path` is the path on the node where the data is stored.
 
-Add to the following parameters to the `prometheus` module configuration:
+Add the following parameters to the `prometheus` module configuration:
 
 ```yaml
 longtermStorageClass: localpath-system
 storageClass: localpath-system
 ```
 
-Wait for the restart of Prometheus Pods.
+Wait until the Prometheus Pods restart.
 
 ## What happens to existing volumes when `spec.path` changes?
 

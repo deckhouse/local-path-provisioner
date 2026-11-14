@@ -4,9 +4,9 @@ description: "Примеры ресурсов LocalPathProvisioner, которы
 weight: 52
 ---
 
-## Пример custom resource `LocalPathProvisioner`
+## Пример кастомного ресурса `LocalPathProvisioner`
 
-Reclaim policy устанавливается по умолчанию в `Retain`.
+Политика освобождения тома (`reclaimPolicy`) по умолчанию — `Retain`.
 
 ```yaml
 apiVersion: deckhouse.io/v1alpha1
@@ -19,9 +19,9 @@ spec:
   path: "/opt/local-path-provisioner"
 ```
 
-## Пример custom resource `LocalPathProvisioner` с установленным `reclaimPolicy`
+## Пример кастомного ресурса `LocalPathProvisioner` с установленным `reclaimPolicy`
 
-Reclaim policy устанавливается в `Delete`.
+Политика освобождения тома — `Delete`.
 
 ```yaml
 apiVersion: deckhouse.io/v1alpha1

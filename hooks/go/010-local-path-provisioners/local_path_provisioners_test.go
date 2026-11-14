@@ -44,7 +44,7 @@ func run(t *testing.T, objects ...string) string {
 	})
 
 	input := &pkg.HookInput{
-		Snapshots: testsnapshot.Snapshots{snapshotName: objects},
+		Snapshots: testsnapshot.Snapshots{snapshotName: testsnapshot.Filtered(t, hookConfig, snapshotName, objects...)},
 		Values:    values,
 	}
 	if err := handle(context.Background(), input); err != nil {
@@ -54,7 +54,13 @@ func run(t *testing.T, objects ...string) string {
 }
 
 func TestFillsInternalValues(t *testing.T) {
-	got := run(t, `{"name":"local1","spec":{"nodeGroups":["master"],"path":"/local","reclaimPolicy":"Retain","unknown":"dropped"}}`)
+	got := run(t, `{
+		"apiVersion": "deckhouse.io/v1alpha1",
+		"kind": "LocalPathProvisioner",
+		"metadata": {"name": "local1", "uid": "8f0c1a2e-5b1d-4c3e-9d7a-2f6b0e4c1a90", "labels": {"team": "storage"}},
+		"spec": {"nodeGroups": ["master"], "path": "/local", "reclaimPolicy": "Retain", "unknown": "dropped"},
+		"status": {"phase": "Ready"}
+	}`)
 
 	want := `[{"name":"local1","spec":{"nodeGroups":["master"],"path":"/local","reclaimPolicy":"Retain"}}]`
 	if got != want {

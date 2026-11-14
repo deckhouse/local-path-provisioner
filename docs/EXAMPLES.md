@@ -6,7 +6,7 @@ weight: 52
 
 ## Example of a `LocalPathProvisioner` custom resource
 
-Reclaim policy set by default to `Retain`.
+The reclaim policy is `Retain` by default.
 
 ```yaml
 apiVersion: deckhouse.io/v1alpha1
@@ -21,7 +21,7 @@ spec:
 
 ## Example of a `LocalPathProvisioner` custom resource with `reclaimPolicy` set
 
-Reclaim policy set to `Delete`.
+The reclaim policy is set to `Delete`.
 
 ```yaml
 apiVersion: deckhouse.io/v1alpha1

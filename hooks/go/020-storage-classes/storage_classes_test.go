@@ -28,9 +28,29 @@ import (
 	"github.com/deckhouse/local-path-provisioner/hooks/go/internal/testsnapshot"
 )
 
+func storageClass(name, reclaimPolicy string) string {
+	return `{
+		"apiVersion": "storage.k8s.io/v1",
+		"kind": "StorageClass",
+		"metadata": {"name": "` + name + `", "labels": {"heritage": "deckhouse", "module": "local-path-provisioner"}},
+		"provisioner": "deckhouse.io/` + name + `",
+		"reclaimPolicy": "` + reclaimPolicy + `",
+		"volumeBindingMode": "WaitForFirstConsumer"
+	}`
+}
+
+func localPathProvisioner(name, reclaimPolicy string) string {
+	return `{
+		"apiVersion": "deckhouse.io/v1alpha1",
+		"kind": "LocalPathProvisioner",
+		"metadata": {"name": "` + name + `"},
+		"spec": {"nodeGroups": ["worker"], "path": "/opt/local-path-provisioner", "reclaimPolicy": "` + reclaimPolicy + `"}
+	}`
+}
+
 var clusterStorageClasses = []string{
-	`{"name":"localpath-worker","reclaimPolicy":"Retain"}`,
-	`{"name":"localpath-worker2","reclaimPolicy":"Delete"}`,
+	storageClass("localpath-worker", "Retain"),
+	storageClass("localpath-worker2", "Delete"),
 }
 
 func run(t *testing.T, crds ...string) []string {
@@ -47,8 +67,8 @@ func run(t *testing.T, crds ...string) []string {
 
 	input := &pkg.HookInput{
 		Snapshots: testsnapshot.Snapshots{
-			storageClassesSnapshot: clusterStorageClasses,
-			crdsSnapshot:           crds,
+			storageClassesSnapshot: testsnapshot.Filtered(t, hookConfig, storageClassesSnapshot, clusterStorageClasses...),
+			crdsSnapshot:           testsnapshot.Filtered(t, hookConfig, crdsSnapshot, crds...),
 		},
 		PatchCollector: patches,
 		Logger:         log.NewNop(),
@@ -66,7 +86,7 @@ func TestFreshClusterDeletesNothing(t *testing.T) {
 }
 
 func TestDeletesStorageClassWithChangedReclaimPolicy(t *testing.T) {
-	deleted := run(t, `{"name":"localpath-worker","reclaimPolicy":"Delete"}`)
+	deleted := run(t, localPathProvisioner("localpath-worker", "Delete"))
 
 	if !slices.Equal(deleted, []string{"localpath-worker"}) {
 		t.Fatalf("deleted %v, want [localpath-worker]", deleted)
@@ -74,7 +94,7 @@ func TestDeletesStorageClassWithChangedReclaimPolicy(t *testing.T) {
 }
 
 func TestKeepsStorageClassWithSameReclaimPolicy(t *testing.T) {
-	if deleted := run(t, `{"name":"localpath-worker2","reclaimPolicy":"Delete"}`); len(deleted) != 0 {
+	if deleted := run(t, localPathProvisioner("localpath-worker2", "Delete")); len(deleted) != 0 {
 		t.Fatalf("deleted %v, want nothing", deleted)
 	}
 }

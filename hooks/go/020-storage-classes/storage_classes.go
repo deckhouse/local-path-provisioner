@@ -37,7 +37,7 @@ type StorageClass struct {
 	ReclaimPolicy string `json:"reclaimPolicy"`
 }
 
-var _ = registry.RegisterFunc(&pkg.HookConfig{
+var hookConfig = &pkg.HookConfig{
 	Queue:        "/modules/local-path-provisioner",
 	OnBeforeHelm: &pkg.OrderedConfig{Order: 20},
 	Kubernetes: []pkg.KubernetesConfig{
@@ -57,7 +57,9 @@ var _ = registry.RegisterFunc(&pkg.HookConfig{
 			JqFilter:   `{name: .metadata.name, reclaimPolicy: .spec.reclaimPolicy}`,
 		},
 	},
-}, handle)
+}
+
+var _ = registry.RegisterFunc(hookConfig, handle)
 
 func handle(_ context.Context, input *pkg.HookInput) error {
 	moduleStorageClasses, err := objectpatch.UnmarshalToStruct[StorageClass](input.Snapshots, storageClassesSnapshot)

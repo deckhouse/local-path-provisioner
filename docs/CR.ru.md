@@ -1,5 +1,6 @@
 ---
-title: "Модуль local-path-provisioner: custom resources"
+title: "Модуль local-path-provisioner: кастомные ресурсы"
+description: "Кастомный ресурс LocalPathProvisioner модуля local-path-provisioner."
 weight: 35
 ---
 

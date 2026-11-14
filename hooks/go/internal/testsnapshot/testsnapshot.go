@@ -17,9 +17,12 @@ limitations under the License.
 package testsnapshot
 
 import (
+	"context"
 	"encoding/json"
+	"testing"
 
 	"github.com/deckhouse/module-sdk/pkg"
+	"github.com/deckhouse/module-sdk/testing/helpers"
 )
 
 type Snapshots map[string][]string
@@ -37,3 +40,24 @@ type snapshot string
 func (s snapshot) UnmarshalTo(v any) error { return json.Unmarshal([]byte(s), v) }
 
 func (s snapshot) String() string { return string(s) }
+
+func Filtered(t testing.TB, config *pkg.HookConfig, name string, objects ...string) []string {
+	t.Helper()
+
+	for _, binding := range config.Kubernetes {
+		if binding.Name != name {
+			continue
+		}
+		filtered := make([]string, 0, len(objects))
+		for _, object := range objects {
+			var result json.RawMessage
+			if err := helpers.JQRunOnString(context.Background(), binding.JqFilter, object, &result); err != nil {
+				t.Fatalf("filter %s: %v", name, err)
+			}
+			filtered = append(filtered, string(result))
+		}
+		return filtered
+	}
+	t.Fatalf("the hook has no %s binding", name)
+	return nil
+}
