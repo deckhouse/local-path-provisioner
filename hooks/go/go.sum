@@ -15,8 +15,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/deckhouse/deckhouse/pkg/log v0.3.0 h1:YJ3oqG4GOjY/p5moHg7dq/gGEgMcl0WhDPak1Rhbrcs=
 github.com/deckhouse/deckhouse/pkg/log v0.3.0/go.mod h1:pbAxTSDcPmwyl3wwKDcEB3qdxHnRxqTV+J0K+sha8bw=
-github.com/deckhouse/module-sdk v0.13.1 h1:fga6PUDYDgzfSMlZOOQpHQ73wxKskf7I6ehu6inEWCQ=
-github.com/deckhouse/module-sdk v0.13.1/go.mod h1:Duf+9VFNnqNRqmbksRoeZXjugDD+WHHTydmSlXcmgmk=
+github.com/deckhouse/module-sdk v0.14.0 h1:6ngD45gsPq0Ie4sLHlNOseZ1+fVzWlPPk7cUVJlAPWI=
+github.com/deckhouse/module-sdk v0.14.0/go.mod h1:Duf+9VFNnqNRqmbksRoeZXjugDD+WHHTydmSlXcmgmk=
 github.com/docker/cli v29.7.2+incompatible h1:dlkwallR8XqfeVnA2ELEhdwvb4lsSwuB4IgsG8Q9cLY=
 github.com/docker/cli v29.7.2+incompatible/go.mod h1:JLrzqnKDaYBop7H2jaqPtU4hHvMKP+vjCwu2uszcLI8=
 github.com/docker/docker-credential-helpers v0.9.3 h1:gAm/VtF9wgqJMoxzT3Gj5p4AqIjCBS4wrsOh9yRqcz8=

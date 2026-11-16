@@ -4,7 +4,7 @@ go 1.27.4
 
 require (
 	github.com/deckhouse/deckhouse/pkg/log v0.3.0
-	github.com/deckhouse/module-sdk v0.13.1
+	github.com/deckhouse/module-sdk v0.14.0
 	k8s.io/apimachinery v0.35.10
 )
 
