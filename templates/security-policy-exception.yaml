@@ -7,7 +7,7 @@
 {{- end }}
 
 {{- $context := . }}
-{{- if and ($context.Values.global.enabledModules | has "admission-policy-engine-crd") $context.Values.localPathProvisioner.internal.localPathProvisioners }}
+{{- if and ($context.Values.global.enabledModules | has "admission-policy-engine") $context.Values.localPathProvisioner.internal.localPathProvisioners }}
 ---
 apiVersion: deckhouse.io/v1alpha1
 kind: SecurityPolicyException

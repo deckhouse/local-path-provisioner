@@ -13,6 +13,10 @@ git:
       install:
         - '**/*'
 
+shell:
+  install:
+    - echo "src artifact"
+
 ---
 image: {{ .ModuleNamePrefix }}{{ .ImageName }}-artifact-dir-manager
 from: {{ index $.Images "builder/golang" }}

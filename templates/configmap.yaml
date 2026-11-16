@@ -22,7 +22,7 @@ data:
     kind: Pod
     metadata:
       name: helper-pod
-      {{- if $context.Values.global.enabledModules | has "admission-policy-engine-crd" }}
+      {{- if $context.Values.global.enabledModules | has "admission-policy-engine" }}
       labels:
         security.deckhouse.io/security-policy-exception: {{ include "local_path_provisioner_helper_spe_name" $localPathProvisioner.name }}
       {{- end }}

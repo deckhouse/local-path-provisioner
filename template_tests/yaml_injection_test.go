@@ -43,7 +43,7 @@ func render(t *testing.T, provisioners ...any) []object {
 
 	values := map[string]any{
 		"global": map[string]any{
-			"enabledModules": []any{"vertical-pod-autoscaler", "admission-policy-engine-crd"},
+			"enabledModules": []any{"vertical-pod-autoscaler", "admission-policy-engine"},
 			"modulesImages": map[string]any{
 				"registry": map[string]any{"base": "registry.example.com/deckhouse", "dockercfg": "e30="},
 				"digests": map[string]any{
