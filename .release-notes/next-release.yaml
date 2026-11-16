@@ -6,7 +6,8 @@ highlights: []
 
 # Optional sections — delete rather than leave empty.
 # new_features: []
-# improvements: []
+improvements:
+  - "The StorageClasses of the module carry the `storage.deckhouse.io/managed-by: local-path-provisioner` label, like the StorageClasses of the other storage modules, so a `ClusterResourceGrantPolicy` can select them with `allowedSelector` or `deniedSelector`. The label is added to existing StorageClasses in place."
 # fixes: []
 # security: []
 # breaking: []

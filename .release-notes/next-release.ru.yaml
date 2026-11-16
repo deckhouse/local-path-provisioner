@@ -6,7 +6,8 @@ highlights: []
 
 # Необязательные разделы — пустые не оставлять, а удалять.
 # new_features: []
-# improvements: []
+improvements:
+  - "На StorageClass модуля стоит метка `storage.deckhouse.io/managed-by: local-path-provisioner`, как на StorageClass других модулей хранения, поэтому `ClusterResourceGrantPolicy` может выбрать их через `allowedSelector` или `deniedSelector`. Метка добавляется на существующие StorageClass на месте."
 # fixes: []
 # security: []
 # breaking: []
