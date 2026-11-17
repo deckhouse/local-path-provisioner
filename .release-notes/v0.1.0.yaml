@@ -1,8 +1,13 @@
+date: "2026-11-17"
+
 summary: "The first release of local-path-provisioner as an external module: the module leaves the Deckhouse Platform core and is delivered from the `deckhouse` module source, with the same resources and settings."
 
 highlights:
   - "The module is delivered from the `deckhouse` module source and is released independently of Deckhouse Platform. In Deckhouse Platform 1.79 the embedded copy of the module is removed, and a cluster that runs it switches to this module on the update."
-  - "The LocalPathProvisioner resource, the module settings, the StorageClasses and the PersistentVolumes stay as they were."
+  - "The LocalPathProvisioners, the module settings, the StorageClasses and the PersistentVolumes are kept."
+
+improvements:
+  - "The StorageClasses of the module carry the `storage.deckhouse.io/managed-by: local-path-provisioner` label, like the StorageClasses of the other storage modules, so a `ClusterResourceGrantPolicy` can select them with `allowedSelector` or `deniedSelector`. The label is added to existing StorageClasses in place."
 
 security:
   - "The provisioner is built with golang.org/x/net v0.62.0, which fixes CVE-2026-78661 and CVE-2026-97045 in golang.org/x/net/html."
@@ -10,3 +15,6 @@ security:
 upgrade_notes:
   - "The switch from the embedded module needs nothing done by hand. The module requires Deckhouse Platform 1.78 or newer: on 1.78 the release is downloaded in advance, while the embedded copy keeps running."
   - "When the module switches from the embedded copy, its Pods restart once, because the image and the image pull Secret change. Volumes are not provisioned or removed until the new Pods are Ready."
+
+docs:
+  - "The FAQ describes what happens to the module on the update to Deckhouse Platform 1.79."
