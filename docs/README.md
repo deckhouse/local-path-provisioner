@@ -1,33 +1,41 @@
 ---
-title: "The local-path-provisioner module"
-description: "Management of local storage on Kubernetes nodes in Deckhouse Kubernetes Platform."
+title: "Local-path-provisioner module"
+description: "The local-path-provisioner module of Deckhouse Platform provides volumes in directories on the local disks of the cluster nodes."
 weight: 10
 ---
 
-Local Path Provisioner provides a way for the Kubernetes users to utilize the local storage on each node.
+The `local-path-provisioner` module provides volumes in directories on the local disks of the cluster nodes.
+A Pod that uses such a volume runs on the node that holds its data.
 
-## How does it work?
+Each LocalPathProvisioner describes a StorageClass: the node groups it serves and the directory on their nodes where volumes are created.
 
-For each custom resource [LocalPathProvisioner](cr.html#localpathprovisioner), a corresponding `StorageClass` is created.
+## Main features
 
-The allowed topology for `StorageClass` is calculated based on the list of `nodeGroup` names from the custom resource.
-The topology is used for scheduling Pods.
+The module offers the following:
 
-When a Pod orders a disk:
-- a `HostPath` PV is created
-- the provisioner creates a local directory on the desired node along the path consisting of the `path` custom resource parameter, the PV name and the PVC name.
+- A StorageClass for local volumes, created from a LocalPathProvisioner.
+- Volumes placed only on the nodes of the chosen node groups.
+- A choice of whether the volume data is kept or removed after its PersistentVolumeClaim is deleted.
 
-  Example of a path:
+## How the module works
 
-  ```shell
-  /opt/local-path-provisioner/pvc-d9bd3878-f710-417b-a4b3-38811aa8aac1_d8-monitoring_prometheus-main-db-prometheus-main-0
-  ```
+The module creates and removes volumes as follows:
 
-## Requirements
+1. For each LocalPathProvisioner, the module creates a StorageClass with the same name.
+   If `nodeGroups` is set, the StorageClass allows only the nodes of these node groups.
+1. A PersistentVolumeClaim of this StorageClass gets a volume after the Pod that uses it is scheduled to a node.
+1. The provisioner creates a directory on that node and a `hostPath` PersistentVolume for it.
+   The directory is created in `path` of the LocalPathProvisioner and is named `<PV_NAME>_<NAMESPACE>_<PVC_NAME>`:
 
-- Deckhouse Kubernetes Platform 1.78 or newer.
-- The module is available in the CE, BE, SE, SE+ and EE editions of Deckhouse Kubernetes Platform.
+   ```text
+   /opt/local-path-provisioner/pvc-d9bd3878-f710-417b-a4b3-38811aa8aac1_d8-monitoring_prometheus-main-db-prometheus-main-0
+   ```
+
+1. After the PersistentVolumeClaim is deleted, `reclaimPolicy` of the LocalPathProvisioner decides what happens to the volume.
+   With `Retain`, the PersistentVolume and the directory with the data stay.
+   With `Delete`, the module removes the directory and the PersistentVolume.
 
 ## Limitations
 
-- The disk size limit is not supported for the local path provisioned volumes.
+The size of a volume is not limited: a volume can use all free space of the disk it is on, whatever size the PersistentVolumeClaim requests.
+The data of a volume is kept on one node only and is lost together with the node.

@@ -21,7 +21,9 @@ spec:
       openAPIV3Schema:
         type: object
         description: |
-          Parameters of the `local-path-provisioner` instance.
+          StorageClass for volumes in a directory on the local disks of the cluster nodes.
+
+          The module creates a StorageClass with the name of this object.
         properties:
           spec:
             type: object
@@ -33,7 +35,9 @@ spec:
                 items:
                   type: string
                 description: |
-                  Select nodeGroups for storageClass allowedTopologies.
+                  Node groups whose nodes can hold the volumes of the StorageClass.
+
+                  If not set, the StorageClass does not restrict the nodes.
                 x-doc-examples:
                 - - master
                   - worker
@@ -41,7 +45,7 @@ spec:
                 type: string
                 pattern: '^/[^"\\\s\p{Cc}]*$'
                 description: |
-                  Node root path for PV's.
+                  Directory on the nodes where the volumes are created.
 
                   An absolute path without quotes, backslashes, whitespace and control characters.
                 x-doc-examples: ["/opt/local-path-provisioner"]
@@ -50,4 +54,9 @@ spec:
                 enum: ["Retain", "Delete"]
                 default: "Retain"
                 description: |
-                  Retain policy for PV's.
+                  What happens to a PersistentVolume and its directory after the PersistentVolumeClaim is deleted.
+
+                  - `Retain`: The PersistentVolume stays `Released`, and the data stays in the directory.
+                  - `Delete`: The module removes the directory with the data and the PersistentVolume.
+
+                  A change of the value recreates the StorageClass; existing PersistentVolumes keep the policy they were created with.

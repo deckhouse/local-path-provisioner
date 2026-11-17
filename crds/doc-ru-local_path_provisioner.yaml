@@ -6,18 +6,27 @@ spec:
     schema:
       openAPIV3Schema:
         description: |
-          Параметры экземпляра `local-path-provisioner`.
+          StorageClass для томов в директории на локальных дисках узлов кластера.
+
+          Модуль создаёт StorageClass с именем этого объекта.
         properties:
           spec:
             properties:
               nodeGroups:
                 description: |
-                  Группы узлов (NodeGroup), в которых работает данный StorageClass.
+                  Группы узлов, на узлах которых могут размещаться тома StorageClass.
+
+                  Если параметр не задан, StorageClass не ограничивает узлы.
               path:
                 description: |
-                  Корневой путь на узле к каталогу для хранения PV.
+                  Директория на узлах, в которой создаются тома.
 
                   Абсолютный путь без кавычек, обратных слешей, пробельных и управляющих символов.
               reclaimPolicy:
                 description: |
-                  Сохранять ли PV после удаления PVC.
+                  Что происходит с PersistentVolume и его директорией после удаления PersistentVolumeClaim.
+
+                  - `Retain` — PersistentVolume остаётся в статусе `Released`, данные остаются в директории.
+                  - `Delete` — модуль удаляет директорию с данными и PersistentVolume.
+
+                  При изменении значения StorageClass пересоздаётся; существующие PersistentVolume сохраняют политику, с которой были созданы.

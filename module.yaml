@@ -4,8 +4,8 @@ subsystems:
   - storage
 namespace: d8-local-path-provisioner
 descriptions:
-  en: Provides local storage on Kubernetes nodes using HostPath volumes. Creates StorageClass resources for managing local storage provisioning.
-  ru: Предоставляет локальное хранилище на узлах Kubernetes с использованием томов HostPath. Создаёт ресурсы StorageClass для управления выделением локального хранилища.
+  en: Provides volumes in directories on the local disks of the cluster nodes and creates a StorageClass for each LocalPathProvisioner.
+  ru: Предоставляет тома в директориях на локальных дисках узлов кластера и создаёт StorageClass для каждого объекта LocalPathProvisioner.
 requirements:
   deckhouse: ">= 1.78"
 accessibility:

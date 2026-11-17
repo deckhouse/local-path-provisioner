@@ -1,38 +1,56 @@
 ---
 title: "Модуль local-path-provisioner: FAQ"
-description: "Ответы на частые вопросы о модуле local-path-provisioner: Prometheus на локальном хранилище и смена пути томов."
+description: "Ответы на частые вопросы о модуле local-path-provisioner в Deckhouse Platform: Prometheus на локальных дисках, смена пути томов и обновление на Deckhouse Platform 1.79."
 weight: 55
 ---
 
-## Как настроить Prometheus на использование локального хранилища?
+## Как хранить данные Prometheus на локальных дисках?
 
-Создайте кастомный ресурс `LocalPathProvisioner`:
+Чтобы хранить данные Prometheus на локальных дисках узлов, где он запущен, выполните следующие шаги:
 
-```yaml
-apiVersion: deckhouse.io/v1alpha1
-kind: LocalPathProvisioner
-metadata:
-  name: localpath-system
-spec:
-  nodeGroups:
-  - system
-  path: "/opt/local-path-provisioner"
-```
+1. Создайте LocalPathProvisioner.
+   В `nodeGroups` укажите группу узлов, где запущены поды Prometheus, в `path` — директорию на узлах для данных:
 
-- `spec.nodeGroups` должен совпадать с NodeGroup, где запущены поды Prometheus.
-- `spec.path` — путь на узле, где хранятся данные.
+   ```yaml
+   apiVersion: deckhouse.io/v1alpha1
+   kind: LocalPathProvisioner
+   metadata:
+     name: localpath-system
+   spec:
+     nodeGroups:
+     - system
+     path: "/opt/local-path-provisioner"
+   ```
 
-Добавьте в конфигурацию модуля `prometheus` следующие параметры:
+1. В настройках модуля `prometheus` укажите имя нового StorageClass в параметрах [`storageClass`](/modules/prometheus/configuration.html#parameters-storageclass)
+   и [`longtermStorageClass`](/modules/prometheus/configuration.html#parameters-longtermstorageclass):
 
-```yaml
-longtermStorageClass: localpath-system
-storageClass: localpath-system
-```
+   ```yaml
+   storageClass: localpath-system
+   longtermStorageClass: localpath-system
+   ```
 
-Дождитесь перезапуска подов Prometheus.
+1. Дождитесь перезапуска подов Prometheus.
 
-## Что происходит с существующими томами при изменении `spec.path`?
+## Что происходит с существующими томами при изменении пути томов?
 
-Новые тома создаются по новому пути. Тома, созданные раньше, остаются в старом каталоге. При `reclaimPolicy: Delete` каталог удалённого тома удаляет вспомогательный под (helper pod), и для этого он монтирует старый путь. Когда Pod Security Standards в системных пространствах имён не только предупреждают о нарушениях, но и отклоняют поды, SecurityPolicyException `helper-<name>` этого LocalPathProvisioner разрешает только текущий путь, поэтому вспомогательный под для старого тома отклоняется: PersistentVolume остаётся в статусе `Released`, а его данные — на узле. При `reclaimPolicy: Retain` (по умолчанию) вспомогательный под при удалении не запускается, и это ограничение не действует.
+Новые тома создаются в новом `path`, а тома, созданные раньше, остаются в старой директории.
 
-Перед изменением `spec.path` удалите PersistentVolumeClaim томов, созданных по старому пути. Если после изменения такой том остался в статусе `Released`, удалите его каталог на узле, а затем сам PersistentVolume.
+При `reclaimPolicy: Delete` директорию удалённого тома удаляет вспомогательный под, и для этого он монтирует старый путь.
+Когда Pod Security Standards в системных неймспейсах не только предупреждают о нарушениях, но и отклоняют поды,
+SecurityPolicyException `helper-<NAME>` разрешает только текущий путь, где `<NAME>` — имя объекта LocalPathProvisioner.
+Тогда вспомогательный под для старого тома отклоняется: PersistentVolume остаётся в статусе `Released`, а его данные — на узле.
+При `reclaimPolicy: Retain`, который действует по умолчанию, вспомогательный под при удалении не запускается, и это ограничение не действует.
+
+Перед изменением `path` удалите PersistentVolumeClaim томов, созданных в старом пути.
+Если после изменения такой том остался в статусе `Released`, удалите его директорию на узле, а затем сам PersistentVolume.
+
+## Что происходит с модулем при обновлении на Deckhouse Platform 1.79?
+
+До Deckhouse Platform 1.79 модуль входил в состав Deckhouse Platform.
+При обновлении на 1.79 кластер, где работает встроенный модуль, переходит на этот модуль автоматически:
+модуль скачивается из ModuleSource `deckhouse`, и обновление ждёт, пока модуль не станет там доступен.
+
+Объекты LocalPathProvisioner, StorageClass и PersistentVolume сохраняются.
+Поды модуля один раз перезапускаются, потому что меняются образ и Secret для загрузки образов.
+Пока новые поды не станут `Ready`, тома не создаются и не удаляются.

@@ -1,32 +1,41 @@
 ---
 title: "Модуль local-path-provisioner"
-description: "Управление локальным хранилищем на узлах Kubernetes в Deckhouse Kubernetes Platform."
+description: "Модуль local-path-provisioner в Deckhouse Platform предоставляет тома в директориях на локальных дисках узлов кластера."
 weight: 10
 ---
 
-Позволяет пользователям Kubernetes использовать локальное хранилище на узлах.
+Модуль `local-path-provisioner` предоставляет тома в директориях на локальных дисках узлов кластера.
+Под, который использует такой том, запускается на узле, где хранятся его данные.
 
-## Как это работает?
+Каждый объект LocalPathProvisioner описывает StorageClass: группы узлов, которые он обслуживает, и директорию на их узлах, в которой создаются тома.
 
-Для каждого кастомного ресурса [LocalPathProvisioner](cr.html#localpathprovisioner) создаётся соответствующий `StorageClass`.
+## Основные возможности
 
-Допустимая топология для `StorageClass` вычисляется на основе списка `nodeGroup` из кастомного ресурса. Топология используется при планировании подов.
+Модуль даёт следующие возможности:
 
-Когда под заказывает диск, то:
-- создаётся `HostPath` PV;
-- провижинер создаёт на нужном узле локальный каталог по пути, состоящем из параметра `path` кастомного ресурса, имени PV и имени PVC.
+- StorageClass для локальных томов, который создаётся из LocalPathProvisioner.
+- Размещение томов только на узлах выбранных групп узлов.
+- Выбор, сохраняются ли данные тома после удаления его PersistentVolumeClaim.
 
-  Пример пути:
+## Как работает модуль
 
-  ```shell
-  /opt/local-path-provisioner/pvc-d9bd3878-f710-417b-a4b3-38811aa8aac1_d8-monitoring_prometheus-main-db-prometheus-main-0
-  ```
+Модуль создаёт и удаляет тома так:
 
-## Требования
+1. Для каждого объекта LocalPathProvisioner модуль создаёт StorageClass с тем же именем.
+   Если задан `nodeGroups`, StorageClass допускает только узлы этих групп.
+1. PersistentVolumeClaim с этим StorageClass получает том после того, как использующий его под назначен на узел.
+1. Провижинер создаёт директорию на этом узле и PersistentVolume типа `hostPath` для неё.
+   Директория создаётся в `path` объекта LocalPathProvisioner и называется `<PV_NAME>_<NAMESPACE>_<PVC_NAME>`:
 
-- Deckhouse Kubernetes Platform 1.78 или новее.
-- Модуль доступен в редакциях CE, BE, SE, SE+ и EE Deckhouse Kubernetes Platform.
+   ```text
+   /opt/local-path-provisioner/pvc-d9bd3878-f710-417b-a4b3-38811aa8aac1_d8-monitoring_prometheus-main-db-prometheus-main-0
+   ```
+
+1. После удаления PersistentVolumeClaim судьбу тома определяет `reclaimPolicy` объекта LocalPathProvisioner.
+   При `Retain` PersistentVolume и директория с данными остаются.
+   При `Delete` модуль удаляет директорию и PersistentVolume.
 
 ## Ограничения
 
-- Ограничение на размер диска не поддерживается для локальных томов.
+Размер тома не ограничивается: том может занять всё свободное место на своём диске, какой бы размер ни запросил PersistentVolumeClaim.
+Данные тома хранятся только на одном узле и теряются вместе с ним.

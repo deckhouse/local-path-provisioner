@@ -1,12 +1,14 @@
 ---
 title: "Модуль local-path-provisioner: примеры"
-description: "Примеры ресурсов LocalPathProvisioner, которые создают StorageClass для локальных томов на узлах Deckhouse."
+description: "Примеры манифестов LocalPathProvisioner для модуля local-path-provisioner в Deckhouse Platform, которые сохраняют или удаляют данные томов."
 weight: 52
 ---
 
-## Пример кастомного ресурса `LocalPathProvisioner`
+## StorageClass, который сохраняет данные томов
 
-Политика освобождения тома (`reclaimPolicy`) по умолчанию — `Retain`.
+Следующий LocalPathProvisioner создаёт StorageClass `localpath-system` для узлов группы `system`.
+Тома создаются в `/opt/local-path-provisioner` на этих узлах.
+После удаления PersistentVolumeClaim его PersistentVolume и данные в директории остаются, потому что `reclaimPolicy` по умолчанию равен `Retain`:
 
 ```yaml
 apiVersion: deckhouse.io/v1alpha1
@@ -19,9 +21,10 @@ spec:
   path: "/opt/local-path-provisioner"
 ```
 
-## Пример кастомного ресурса `LocalPathProvisioner` с установленным `reclaimPolicy`
+## StorageClass, который удаляет данные томов
 
-Политика освобождения тома — `Delete`.
+Следующий LocalPathProvisioner задаёт `reclaimPolicy` равным `Delete`.
+После удаления PersistentVolumeClaim модуль удаляет его PersistentVolume и директорию с данными:
 
 ```yaml
 apiVersion: deckhouse.io/v1alpha1
